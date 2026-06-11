@@ -41,6 +41,10 @@
 .section-head { display: flex; align-items: baseline; justify-content: space-between; margin: 40px 0 20px; }
 .section-head h2 { font-family: var(--serif-display); font-weight: 600; font-size: 1.5rem; margin: 0; color: var(--ink); white-space: nowrap; }
 
+/* ---- Library: whole-deck actions ---- */
+.deck-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: -4px 0 22px; }
+.btn-sm { padding: 9px 16px; font-size: 0.85rem; }
+
 /* ---- Library: pack tiles ---- */
 .packs { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 18px; }
 .pack {
@@ -158,6 +162,19 @@
 .flip-hint { position: absolute; bottom: 26px; left: 0; right: 0; text-align: center; color: var(--ink-faint); font-size: 0.74rem; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.8; }
 .front-flourish { width: 44px; height: 1.5px; background: var(--gold); margin: 0 auto; }
 
+/* first-letter hint (front face) */
+.hint-btn {
+  background: none; border: 1px solid var(--hairline); border-radius: 999px;
+  color: var(--ink-faint); font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 7px 16px; transition: color 200ms, border-color 200ms;
+}
+.hint-btn:hover { color: var(--accent); border-color: var(--gold); }
+.hint-text {
+  font-family: var(--verse-font); color: var(--ink-soft);
+  font-size: 1.02rem; line-height: 1.75; letter-spacing: 0.05em;
+  max-width: 44ch; text-wrap: pretty;
+}
+
 .face-back {
   transform: rotateY(180deg);
   background: var(--card-back); color: var(--card-back-ink);
@@ -195,6 +212,9 @@
 .mark-btn.on { background: color-mix(in oklch, var(--gold) 16%, var(--card)); border-color: var(--gold); color: var(--ink); }
 .mark-btn.on .tick { background: var(--gold); border-color: var(--gold); color: var(--card); }
 
+/* keyboard shortcut hints */
+.kbd-hints { width: 100%; text-align: center; margin: -22px 0 0; padding-bottom: 26px; opacity: 0.75; }
+
 /* finish panel */
 .finish { text-align: center; max-width: 460px; display: flex; flex-direction: column; align-items: center; gap: 18px; animation: fadeIn 500ms ease; }
 .finish h2 { font-family: var(--serif-display); font-weight: 600; font-size: 2.6rem; margin: 0; }
@@ -208,4 +228,6 @@
   .app { padding: 0 22px 90px; }
   .masthead { flex-direction: column; align-items: flex-start; gap: 18px; }
   .face { padding: 38px 30px; }
+  .kbd-hints { display: none; }
+  .pack-hero { flex-direction: column; align-items: flex-start; gap: 20px; }
 }

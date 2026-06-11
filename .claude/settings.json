@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx --yes esbuild src/bundle.jsx --loader:.jsx=jsx --outfile=NUL)",
+      "Bash(tasklist)"
+    ]
+  }
+}

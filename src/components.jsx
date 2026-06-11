@@ -59,8 +59,19 @@ function VerseChip({ reference: vref, done, onClick }) {
   );
 }
 
+/* --- first letters of each word: the classic TMS recall aid --- */
+function firstLetters(text) {
+  return text.split(/\s+/).map((w) => {
+    const m = w.match(/[A-Za-z0-9]/);
+    if (!m) return w; /* pure punctuation (em-dashes etc.) stays */
+    const head = w.slice(0, w.indexOf(m[0]) + 1); /* keeps leading quotes */
+    const tail = (w.match(/[.,;:!?…”’"']+$/) || [""])[0];
+    return head + tail;
+  }).join(" ");
+}
+
 /* --- the flip flashcard --- */
-function Flashcard({ card, flipped, onFlip }) {
+function Flashcard({ card, flipped, onFlip, hint, onHint }) {
   return (
     <div className="scene">
       <div className={"flipper" + (flipped ? " flipped" : "")} onClick={onFlip}
@@ -69,7 +80,14 @@ function Flashcard({ card, flipped, onFlip }) {
           <div className="topic-label label">{card.topic}</div>
           <div className="front-flourish" />
           <div className="front-ref">{card.ref}</div>
-          <div className="front-pack">Pack {card.packId} · {card.packTitle}</div>
+          {hint
+            ? <div className="hint-text">{firstLetters(card.text)}</div>
+            : <div className="front-pack">Pack {card.packId} · {card.packTitle}</div>}
+          {onHint && (
+            <button className="hint-btn" onClick={(e) => { e.stopPropagation(); onHint(); }}>
+              {hint ? "Hide first letters" : "First letters"}
+            </button>
+          )}
           <div className="flip-hint">Tap to reveal</div>
         </div>
         <div className="face face-back">
@@ -82,4 +100,4 @@ function Flashcard({ card, flipped, onFlip }) {
   );
 }
 
-Object.assign(window, { IconCheck, IconArrow, Crest, ProgressRing, VerseChip, Flashcard });
+Object.assign(window, { IconCheck, IconArrow, Crest, ProgressRing, VerseChip, Flashcard, firstLetters });

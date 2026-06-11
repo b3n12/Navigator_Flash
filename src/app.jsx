@@ -8,7 +8,10 @@ function loadProgress() {
 }
 function saveProgress(p) { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch (e) {} }
 
-function dayStr(d) { return d.toISOString().slice(0, 10); }
+function dayStr(d) {
+  /* local date, not UTC — streaks should roll over at the user's midnight */
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
 function todayStr() { return dayStr(new Date()); }
 function yesterdayStr() { const d = new Date(); d.setDate(d.getDate() - 1); return dayStr(d); }
 
@@ -21,6 +24,16 @@ function deckForPack(pack) {
   return out;
 }
 const ALL_CARDS = PACKS.flatMap(deckForPack);
+
+/* Fisher–Yates, non-mutating */
+function shuffled(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 /* ===================== STREAK CHIP ===================== */
 function StreakChip({ streak, today }) {
@@ -39,12 +52,21 @@ function StreakChip({ streak, today }) {
 }
 
 /* ===================== LIBRARY ===================== */
-function Library({ progress, onOpenPack }) {
+function Library({ progress, onOpenPack, onStudyAll }) {
+  const unlearned = ALL_CARDS.filter((c) => !(progress.memorized && progress.memorized[c.key]));
   return (
     <div>
       <div className="section-head">
         <h2>The Five Packs</h2>
         <span className="label">A — E · 60 verses</span>
+      </div>
+      <div className="deck-actions">
+        <button className="btn btn-ghost btn-sm" onClick={() => onStudyAll(ALL_CARDS, "All packs")}>Review all sixty</button>
+        <button className="btn btn-ghost btn-sm" onClick={() => onStudyAll(shuffled(ALL_CARDS), "All packs · shuffled")}>Shuffle &amp; review</button>
+        <button className="btn btn-ghost btn-sm" disabled={unlearned.length === 0}
+          onClick={() => onStudyAll(shuffled(unlearned), "Still learning")}>
+          Still learning · {unlearned.length}
+        </button>
       </div>
       <div className="packs">
         {PACKS.map((pack) => {
@@ -97,6 +119,7 @@ function PackDetail({ packId, progress, onBack, onStudy, onStudyOne }) {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <ProgressRing value={frac} size={54} stroke={3.5} />
+          <button className="btn btn-ghost" onClick={() => onStudy(shuffled(cards), true)}>Shuffle</button>
           <button className="btn btn-gold" onClick={() => onStudy(cards)}>Begin review</button>
         </div>
       </div>
@@ -115,7 +138,7 @@ function PackDetail({ packId, progress, onBack, onStudy, onStudyOne }) {
               </div>
             </div>
             <span className="pack-count">
-              {t.verses.filter((v) => progress.memorized && progress.memorized[v.ref]).length} / 2
+              {t.verses.filter((v) => progress.memorized && progress.memorized[v.ref]).length} / {t.verses.length}
             </span>
           </div>
         ))}
@@ -128,6 +151,7 @@ function PackDetail({ packId, progress, onBack, onStudy, onStudyOne }) {
 function Study({ deck, startIndex, progress, onMark, onReview, onClose, title }) {
   const [i, setI] = useS(startIndex || 0);
   const [flipped, setFlipped] = useS(false);
+  const [hint, setHint] = useS(false);
   const [finished, setFinished] = useS(false);
   const reviewed = useR(new Set());
   const card = deck[i];
@@ -145,6 +169,7 @@ function Study({ deck, startIndex, progress, onMark, onReview, onClose, title })
 
   const go = useCB((dir) => {
     setFlipped(false);
+    setHint(false);
     setTimeout(() => {
       setI((prev) => {
         const next = prev + dir;
@@ -163,6 +188,7 @@ function Study({ deck, startIndex, progress, onMark, onReview, onClose, title })
       else if (e.code === "ArrowLeft") go(-1);
       else if (e.key === "Escape") onClose();
       else if (e.key.toLowerCase() === "m" && card) onMark(card.key);
+      else if (e.key.toLowerCase() === "h") setHint((h) => !h);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -208,7 +234,8 @@ function Study({ deck, startIndex, progress, onMark, onReview, onClose, title })
       <div className="study-progress"><div style={{ width: (prog * 100) + "%" }} /></div>
 
       <div className="scene-wrap">
-        <Flashcard card={card} flipped={flipped} onFlip={doFlip} />
+        <Flashcard card={card} flipped={flipped} onFlip={doFlip}
+          hint={hint} onHint={() => setHint((h) => !h)} />
       </div>
 
       <div className="study-controls">
@@ -223,6 +250,7 @@ function Study({ deck, startIndex, progress, onMark, onReview, onClose, title })
           <IconArrow dir="right" />
         </button>
       </div>
+      <p className="kbd-hints label">Space — flip · ← → — move · M — memorized · H — first letters · Esc — close</p>
     </div>
   );
 }
@@ -276,7 +304,8 @@ function App() {
   const todayCount = (progress.counts && progress.counts[todayStr()]) || 0;
   const streakLive = (progress.lastDay === todayStr() || progress.lastDay === yesterdayStr()) ? (progress.streak || 0) : 0;
 
-  const openStudy = (deck, idx, title) => setView({ name: "study", deck, idx: idx || 0, title });
+  const openStudy = (deck, idx, title, origin) =>
+    setView({ name: "study", deck, idx: idx || 0, title, origin: origin || { name: "library" } });
 
   return (
     <div className="app">
@@ -294,7 +323,9 @@ function App() {
       <hr className="rule-gold" />
 
       {view.name === "library" && (
-        <Library progress={progress} onOpenPack={(id) => setView({ name: "pack", packId: id })} />
+        <Library progress={progress}
+          onOpenPack={(id) => setView({ name: "pack", packId: id })}
+          onStudyAll={(deck, title) => openStudy(deck, 0, title)} />
       )}
 
       {view.name === "pack" && (
@@ -302,8 +333,8 @@ function App() {
           packId={view.packId}
           progress={progress}
           onBack={() => setView({ name: "library" })}
-          onStudy={(deck) => openStudy(deck, 0, "Pack " + view.packId)}
-          onStudyOne={(deck, ref) => openStudy(deck, deck.findIndex((c) => c.key === ref), "Pack " + view.packId)}
+          onStudy={(deck, shuf) => openStudy(deck, 0, "Pack " + view.packId + (shuf ? " · shuffled" : ""), { name: "pack", packId: view.packId })}
+          onStudyOne={(deck, ref) => openStudy(deck, deck.findIndex((c) => c.key === ref), "Pack " + view.packId, { name: "pack", packId: view.packId })}
         />
       )}
 
@@ -315,7 +346,7 @@ function App() {
           progress={progress}
           onMark={toggleMark}
           onReview={recordReview}
-          onClose={() => setView({ name: "pack", packId: view.deck[0].packId })}
+          onClose={() => setView(view.origin || { name: "library" })}
         />
       )}
 
