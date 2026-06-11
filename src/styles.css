@@ -114,6 +114,21 @@
 .btn-gold { background: var(--gold-deep); border-color: var(--gold-deep); color: oklch(0.99 0.01 86); }
 .btn[disabled] { opacity: 0.35; cursor: default; transform: none; }
 
+/* ---- Summary: all verses on one page ---- */
+.summary { display: flex; flex-direction: column; gap: 46px; margin-top: 8px; }
+.sum-pack-head { display: flex; align-items: center; gap: 14px; padding-bottom: 12px; border-bottom: 2px solid var(--gold); }
+.sum-pack-head h3 { font-family: var(--serif-display); font-weight: 600; font-size: 1.65rem; margin: 0; color: var(--ink); }
+.sum-topic { margin-top: 24px; }
+.sum-topic-name { margin-bottom: 6px; color: var(--accent); }
+.sum-verse {
+  display: grid; grid-template-columns: 190px 1fr; gap: 20px; align-items: baseline;
+  padding: 13px 4px; border-bottom: 1px solid var(--hairline);
+}
+.sum-ref { display: flex; align-items: center; gap: 9px; font-family: var(--serif-display); font-weight: 600; font-size: 1.08rem; color: var(--ink); }
+.sum-verse.done .tick { background: var(--gold); border-color: var(--gold); color: var(--card); }
+.sum-text { margin: 0; font-family: var(--verse-font); color: var(--ink-soft); font-size: 1.02rem; line-height: 1.65; text-wrap: pretty; }
+.sum-verse.done .sum-text { color: var(--ink); }
+
 /* ===================== STUDY / FLASHCARD ===================== */
 .study {
   position: fixed; inset: 0; z-index: 40; background: var(--paper);
@@ -230,4 +245,5 @@
   .face { padding: 38px 30px; }
   .kbd-hints { display: none; }
   .pack-hero { flex-direction: column; align-items: flex-start; gap: 20px; }
+  .sum-verse { grid-template-columns: 1fr; gap: 5px; }
 }

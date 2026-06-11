@@ -52,7 +52,7 @@ function StreakChip({ streak, today }) {
 }
 
 /* ===================== LIBRARY ===================== */
-function Library({ progress, onOpenPack, onStudyAll }) {
+function Library({ progress, onOpenPack, onStudyAll, onSummary }) {
   const unlearned = ALL_CARDS.filter((c) => !(progress.memorized && progress.memorized[c.key]));
   return (
     <div>
@@ -67,6 +67,7 @@ function Library({ progress, onOpenPack, onStudyAll }) {
           onClick={() => onStudyAll(shuffled(unlearned), "Still learning")}>
           Still learning · {unlearned.length}
         </button>
+        <button className="btn btn-ghost btn-sm" onClick={onSummary}>Summary</button>
       </div>
       <div className="packs">
         {PACKS.map((pack) => {
@@ -98,6 +99,47 @@ function Library({ progress, onOpenPack, onStudyAll }) {
         the Holy Bible, New International Version (NIV). Verse text should be proofread against an official
         edition before printing.
       </p>
+    </div>
+  );
+}
+
+/* ===================== SUMMARY — ALL VERSES ON ONE PAGE ===================== */
+function Summary({ progress, onBack }) {
+  return (
+    <div>
+      <button className="backlink" onClick={onBack}><IconArrow dir="left" style={{ width: 15, height: 15 }} /> All packs</button>
+      <div className="section-head">
+        <h2>All Sixty Verses</h2>
+        <span className="label">Packs A — E · one page</span>
+      </div>
+      <div className="summary">
+        {PACKS.map((pack) => (
+          <section className="sum-pack" key={pack.id}>
+            <div className="sum-pack-head">
+              <span className="pack-badge">{pack.id}</span>
+              <h3>{pack.title}</h3>
+              <span className="label" style={{ marginLeft: "auto" }}>Pack {pack.id}</span>
+            </div>
+            {pack.topics.map((t) => (
+              <div className="sum-topic" key={t.topic}>
+                <div className="sum-topic-name label">{t.topic}</div>
+                {t.verses.map((v) => {
+                  const done = !!(progress.memorized && progress.memorized[v.ref]);
+                  return (
+                    <div className={"sum-verse" + (done ? " done" : "")} key={v.ref}>
+                      <div className="sum-ref">
+                        <span className="tick">{done && <IconCheck />}</span>
+                        {v.ref}
+                      </div>
+                      <p className="sum-text">{v.text}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </section>
+        ))}
+      </div>
     </div>
   );
 }
@@ -325,7 +367,12 @@ function App() {
       {view.name === "library" && (
         <Library progress={progress}
           onOpenPack={(id) => setView({ name: "pack", packId: id })}
-          onStudyAll={(deck, title) => openStudy(deck, 0, title)} />
+          onStudyAll={(deck, title) => openStudy(deck, 0, title)}
+          onSummary={() => setView({ name: "summary" })} />
+      )}
+
+      {view.name === "summary" && (
+        <Summary progress={progress} onBack={() => setView({ name: "library" })} />
       )}
 
       {view.name === "pack" && (
