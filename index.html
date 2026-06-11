@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Topical Memory System — Verse Cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<link href="src/styles.css" rel="stylesheet" />
+<style>
+  /* ============ THEME TOKENS ============ */
+  :root {
+    /* Parchment (default) — warm off-white, umber ink, muted gold */
+    --paper:        oklch(0.972 0.010 83);
+    --paper-2:      oklch(0.948 0.013 82);
+    --card:         oklch(0.992 0.006 86);
+    --card-edge:    oklch(0.885 0.016 78);
+    --ink:          oklch(0.305 0.022 56);
+    --ink-soft:     oklch(0.470 0.022 58);
+    --ink-faint:    oklch(0.640 0.018 62);
+    --accent:       oklch(0.640 0.072 64);   /* clay / umber */
+    --gold:         oklch(0.745 0.090 84);   /* muted gold */
+    --gold-deep:    oklch(0.640 0.088 80);
+    --hairline:     oklch(0.870 0.018 78);
+    --shadow:       28 22 14;                 /* rgb-ish base for shadows */
+    --card-back:    oklch(0.300 0.024 58);   /* dark face on flip back */
+    --card-back-ink: oklch(0.965 0.012 84);
+  }
+  [data-theme="quiet"] {
+    --paper:        oklch(0.970 0.007 150);
+    --paper-2:      oklch(0.945 0.010 152);
+    --card:         oklch(0.991 0.004 150);
+    --card-edge:    oklch(0.880 0.012 155);
+    --ink:          oklch(0.318 0.018 175);
+    --ink-soft:     oklch(0.480 0.016 170);
+    --ink-faint:    oklch(0.650 0.014 165);
+    --accent:       oklch(0.605 0.045 160);  /* sage */
+    --gold:         oklch(0.700 0.055 130);
+    --gold-deep:    oklch(0.600 0.052 150);
+    --hairline:     oklch(0.875 0.012 158);
+    --card-back:    oklch(0.300 0.022 180);
+    --card-back-ink: oklch(0.960 0.010 150);
+  }
+  [data-theme="gilded"] {
+    --paper:        oklch(0.945 0.018 80);
+    --paper-2:      oklch(0.915 0.022 78);
+    --card:         oklch(0.975 0.014 82);
+    --card-edge:    oklch(0.850 0.026 74);
+    --ink:          oklch(0.270 0.028 52);
+    --ink-soft:     oklch(0.430 0.028 54);
+    --ink-faint:    oklch(0.600 0.024 58);
+    --accent:       oklch(0.580 0.090 58);
+    --gold:         oklch(0.730 0.115 82);
+    --gold-deep:    oklch(0.615 0.110 78);
+    --hairline:     oklch(0.840 0.028 74);
+    --card-back:    oklch(0.255 0.030 54);
+    --card-back-ink: oklch(0.955 0.018 84);
+  }
+
+  /* ============ TYPE TOKENS ============ */
+  :root {
+    --serif-display: "Cormorant Garamond", Georgia, serif;
+    --serif-text: "Spectral", Georgia, serif;
+    --verse-font: "Spectral", Georgia, serif;
+  }
+  [data-verseface="cormorant"] { --verse-font: "Cormorant Garamond", Georgia, serif; }
+  [data-verseface="ebgaramond"] { --verse-font: "EB Garamond", Georgia, serif; }
+  [data-verseface="spectral"] { --verse-font: "Spectral", Georgia, serif; }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif-text);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transition: background 600ms ease, color 600ms ease;
+  }
+  .label {
+    font-family: var(--serif-text);
+    text-transform: uppercase;
+    letter-spacing: 0.26em;
+    font-weight: 500;
+    font-size: 0.66rem;
+    color: var(--ink-faint);
+  }
+  ::selection { background: color-mix(in oklch, var(--gold) 38%, transparent); }
+  button { font-family: inherit; cursor: pointer; }
+  #root { min-height: 100vh; }
+
+  /* subtle paper grain via layered radial dots */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(oklch(0.5 0.02 60 / 0.018) 0.5px, transparent 0.5px);
+    background-size: 4px 4px;
+    z-index: 0;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#efe9dd"/>
+    <rect x="30" y="22" width="44" height="56" rx="3" fill="#fffdf7" stroke="#caa24a" stroke-width="1.5" transform="rotate(-6 52 50)"/>
+    <rect x="26" y="26" width="44" height="56" rx="3" fill="#fffdf7" stroke="#8a6a3a" stroke-width="1.5"/>
+    <line x1="34" y1="40" x2="62" y2="40" stroke="#caa24a" stroke-width="2"/>
+    <line x1="34" y1="50" x2="62" y2="50" stroke="#d8cdb6" stroke-width="1.5"/>
+    <line x1="34" y1="56" x2="62" y2="56" stroke="#d8cdb6" stroke-width="1.5"/>
+    <line x1="34" y1="62" x2="54" y2="62" stroke="#d8cdb6" stroke-width="1.5"/>
+  </svg>
+</template>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="src/verses.js"></script>
+<script type="text/babel" src="src/bundle.jsx"></script>
+</body>
+</html>
